@@ -1,18 +1,77 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>The Game of Life</title>
-    <link rel="stylesheet" href="life.css" />
-  </head>
-  <body>
-    <div id="gridContainer"></div>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game of Life</title>
+</head>
+<body>
+<canvas id="game-canvas" width="400" height="400" style="border:1px solid #000"></canvas>
+<script>
+const canvas = document.getElementById('game-canvas');
+const ctx = canvas.getContext('2d');
+const cellSize = 20;
+const rows = 20;
+const cols = 20;
+let grid = Array.from({ length: rows }, () => Array(cols).fill(0));
 
-    <div class="controls">
-      <button id="start">start</button>
-      <button id="clear">clear</button>
-    </div>
+// Initialize grid with random live cells
+for (let row = 0; row < rows; row++) {
+  for (let col = 0; col < cols; col++) {
+    grid[row][col] = Math.random() > 0.7 ? 1 : 0;
+  }
+}
 
-    <script src="code.js"></script>
-  </body>
+function drawGrid() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      ctx.strokeStyle = '#ddd';
+      ctx.strokeRect(col * cellSize, row * cellSize, cellSize, cellSize);
+      if (grid[row][col] === 1) {
+        ctx.fillStyle = '#333';
+        ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+      }
+    }
+  }
+}
+
+function updateGrid() {
+  const newGrid = grid.map(arr => [...arr]);
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const neighbors = countNeighbors(row, col);
+      if (grid[row][col] === 1 && (neighbors < 2 || neighbors > 3)) {
+        newGrid[row][col] = 0;
+      } else if (grid[row][col] === 0 && neighbors === 3) {
+        newGrid[row][col] = 1;
+      }
+    }
+  }
+  grid = newGrid;
+}
+
+function countNeighbors(row, col) {
+  let count = 0;
+  for (let i = -1; i <= 1; i++) {
+    for (let j = -1; j <= 1; j++) {
+      if (i === 0 && j === 0) continue;
+      const newRow = (row + i + rows) % rows;
+      const newCol = (col + j + cols) % cols;
+      count += grid[newRow][newCol];
+    }
+  }
+  return count;
+}
+
+function startSimulation() {
+  updateGrid();
+  drawGrid();
+  requestAnimationFrame(startSimulation);
+}
+
+drawGrid();
+startSimulation();
+</script>
+</body>
 </html>
